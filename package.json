@@ -5,7 +5,9 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "dev": "tsx index.ts node --env-file=.env"
+    "dev": "yarn run build && yarn run concurrently \"yarn run build -w\" \"yarn nodemon\"",
+    "build": "yarn tsc",
+    "start": "yarn node ./dist/index.js"
   },
   "dependencies": {
     "@types/cors": "^2.8.17",

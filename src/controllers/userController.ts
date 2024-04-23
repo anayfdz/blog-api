@@ -14,10 +14,10 @@ export class UserController {
         }
     }
     static async updateUser(req: Request, res: Response): Promise<void> {
-        const userId = req.params.userId;
+        const {id} = req.params;
         const userData = req.body;
         try {
-            await UserModel.updateUser(userId, userData);
+            await UserModel.updateUser(id, userData);
             res.status(200).json({message: 'User updated successfully'})
         } catch (error) {
             console.error('Error updating user', error);
@@ -25,9 +25,9 @@ export class UserController {
         }
     }
     static async deleteUser(req: Request, res: Response): Promise<void> {
-        const userId = req.params.userId;
+        const {id} = req.params;
         try {
-            await UserModel.deleteUser(userId);
+            await UserModel.deleteUser(id);
             res.status(200).json({ message: 'User deleting successfully'})
         } catch (error) {
             console.error('Error deleting: ', error);
@@ -35,9 +35,9 @@ export class UserController {
         }
     }
     static async getUserById(req: Request, res: Response): Promise<void> {
-        const userId = req.params.userId;
+        const {id} = req.params;
         try {
-            const user = await UserModel.getUserById(userId);
+            const user = await UserModel.getUserById(id);
             if(user) {
                 res.status(200).json(user);
             } else {

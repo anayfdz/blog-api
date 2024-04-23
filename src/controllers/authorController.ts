@@ -13,10 +13,10 @@ export class AuthorController {
         }
     }
     static async updateAuthor(req: Request, res: Response): Promise<void> {
-        const authorId = req.params.authorId;
+        const { id } = req.params;
         const authorData = req.body;
         try {
-            await AuthorModel.updateAuthor(authorId, authorData);
+            await AuthorModel.updateAuthor(id, authorData);
             res.status(200).json({ message: 'Autor actualizado con exito' })
         } catch (error) {
             console.error('Error updating author: ', error);
@@ -24,9 +24,9 @@ export class AuthorController {
         }
     }
     static async deleteAuthor(req: Request, res: Response): Promise<void> {
-        const authorId = req.params.authorId;
+        const {id} = req.params;
         try {
-            await AuthorModel.deleteAuthor(authorId);
+            await AuthorModel.deleteAuthor(id);
             res.status(200).json({ message: 'Author eliminado con exito' });
         } catch (error) {
             console.log('Error deleting: ', error);
@@ -36,9 +36,9 @@ export class AuthorController {
         }
     }
     static async getAuthorById(req: Request, res: Response): Promise<void> {
-        const authorId = req.params.authorId;
+        const {id} = req.params;
         try {
-            const author = await AuthorModel.getAuthorById(authorId);
+            const author = await AuthorModel.getAuthorById(id);
             if (author) {
                 res.status(200).json(author);
             } else {
