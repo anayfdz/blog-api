@@ -8,6 +8,7 @@ import { userRoutes } from './src/routes/userRoutes';
 import { authorRoutes } from './src/routes/authorRoutes';
 import { categoryRoutes } from './src/routes/categoryRoutes';
 import { postRoutes } from './src/routes/postRoutes';
+import { commentRoutes } from './src/routes/commentRoutes';
 import { config } from './src/config/env';
 import { applyMiddleware  } from './src/config/middleware';
 
