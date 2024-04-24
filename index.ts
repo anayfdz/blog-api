@@ -7,6 +7,7 @@ import {connectDB} from './src/config/db';
 import { userRoutes } from './src/routes/userRoutes';
 import { authorRoutes } from './src/routes/authorRoutes';
 import { categoryRoutes } from './src/routes/categoryRoutes';
+import { postRoutes } from './src/routes/postRoutes';
 import { config } from './src/config/env';
 import { applyMiddleware  } from './src/config/middleware';
 
