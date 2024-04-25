@@ -9,10 +9,12 @@ import { authorRoutes } from './src/routes/authorRoutes';
 import { categoryRoutes } from './src/routes/categoryRoutes';
 import { postRoutes } from './src/routes/postRoutes';
 import { commentRoutes } from './src/routes/commentRoutes';
+import { likeRoutes } from './src/routes/likeRoutes';
+import { tagRoutes } from './src/routes/tagRoutes'
+import { roleRoutes } from './src/routes/roleRoutes'
 import { config } from './src/config/env';
 import { applyMiddleware  } from './src/config/middleware';
 
-//import { userRoutes, postRoutes, categoryRoutes, commentRoutes, likeRoutes, tagRoutes, roleRoutes } from './routes';
 
 
 const app = express();
