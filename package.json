@@ -1,13 +1,12 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/index.js",
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "dev": "yarn run build && yarn run concurrently \"yarn run build -w\" \"yarn nodemon\"",
     "build": "yarn tsc",
-    "start": "yarn node ./dist/index.js"
+    "dev": "node --experimental-specifier-resolution=node --loader ts-node/esm ./dist/index.js \n"
   },
   "dependencies": {
     "@types/cors": "^2.8.17",
@@ -17,6 +16,7 @@
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.5.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
   },
   "devDependencies": {

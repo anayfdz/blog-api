@@ -1,7 +1,7 @@
 import { MongoClient, Db } from 'mongodb';
 import dotenv from 'dotenv'
 dotenv.config()
-const uri = process.env.MONGO;
+const uri = process.env.MONGODB_URI;
 if (!uri) {
     throw new Error('Missing MONGO environment variable');
 }
