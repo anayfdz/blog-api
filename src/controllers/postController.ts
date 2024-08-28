@@ -1,9 +1,31 @@
 import { Request, Response } from 'express';
 import { PostModel } from '../models/Post'
+import {AuthenticatedRequest} from '../types/types'
 export class PostController {
-    static async createPost(req: Request, res: Response):Promise<void> {
+    static async createPost(req: AuthenticatedRequest, res: Response):Promise<void> {
         try {
-            const postData = req.body;
+            const { title, content, categories, tags } = req.body;
+            if (!title || !content) {
+                res.status(400).json({ message: 'Title and content are required' });
+                return;
+            }
+            const authorId = req.user?.iat;
+            console.log(authorId)
+            if (!authorId) {
+                res.status(401).json({ message: 'Unauthorized' });
+                return;
+            }
+
+            const postData = {
+                title,
+                content,
+                categories: Array.isArray(categories) ? categories : [categories],
+                tags: Array.isArray(tags) ? tags : [tags],
+                author: authorId,
+                createdAt: new Date(),
+                updatedAt: new Date()
+            }
+
             await PostModel.createPost(postData);
             res.status(201).json({message: 'Post created successfully'});
         } catch (error) {
@@ -54,6 +76,15 @@ export class PostController {
         } catch (error) {
             console.error('Error deleting post', error);
             res.status(500).json('Server Error');
+        }
+    }
+    static async getAllPostsWithAuthors(req: Request, res: Response) {
+        try {
+            const postsWithAuthors = await PostModel.getAllPostsWithAuthors();
+            res.status(200).json(postsWithAuthors);
+        } catch (error) {
+            console.error('Error fetching posts with authors:', error);
+            res.status(500).json({ message: 'Error fetching posts with authors' });
         }
     }
 }

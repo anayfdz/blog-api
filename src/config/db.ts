@@ -16,7 +16,7 @@ export async function connectDB(): Promise<Db> {
     try {
         await client.connect();
         console.log('Connected to MongoDB');
-        const db = client.db('test');
+        const db = client.db('blog');
         cacheDb = db;
         return db;
     } catch (error) {
