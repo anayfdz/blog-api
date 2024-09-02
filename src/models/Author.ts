@@ -3,10 +3,12 @@ import { connectDB } from '../config/db';
 
 export interface Author {
     _id?: ObjectId;
+    id: string;
     name: string;
-    avatarImage: string;
-    description: string;
-    posts?: ObjectId[];
+    avatarImage?: string;
+    description?: string;
+    postID: string[];
+    email: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -16,14 +18,18 @@ export class AuthorModel {
     public static async init(): Promise<void> {
         const db = await connectDB();
         AuthorModel.collection = db.collection<Author>('authors');
+        console.log('Author collection initialized');
     }
-    public static async createAuthor(author: Author): Promise<void> {
+    public static async createAuthor(authorData: Omit<Author, 'id' | '_id' | 'postID' | 'createdAt' | 'updatedAt'>): Promise<void> {
         try {
             if(!AuthorModel.collection) {
                 console.log('Author collection not initilized');
             }
+            const newId = new ObjectId();
             await AuthorModel.collection.insertOne({
-                ...author,
+                ...authorData,
+                id: newId.toString(),
+                postID: [],
                 createdAt: new Date(),
                 updatedAt: new Date()
             });
@@ -31,6 +37,17 @@ export class AuthorModel {
             console.error('Error creating author: ', error)
         }
     }
+
+    public static async addPostToAuthor(authorId: string, postId: string): Promise<void> {
+        try {
+            if(!AuthorModel.collection) {
+                throw new Error('Author collection not initialized')
+            }
+            await AuthorModel.collection.updateOne({id: authorId},{$push: { postID: postId }})
+    } catch (error) {
+        console.log('Error adding post to author: ', error)
+    }
+}
     static async updateAuthor(authorId: string, authorData: any): Promise<void> {
         try {
             if (!AuthorModel.collection) {
@@ -61,10 +78,19 @@ export class AuthorModel {
     }
     static async getAuthorById(authorId: string): Promise<Author | null> {
         try {
+            await AuthorModel.init();
             if(!AuthorModel.collection) {
                 throw new Error('Author collection not initialized');
             }
-            return await AuthorModel.collection.findOne({ _id: new ObjectId(authorId)});
+            if (!ObjectId.isValid(authorId)) {
+                throw new Error(`Invalid authorId: ${authorId}`);
+            }
+            const author = await AuthorModel.collection.findOne({ _id: new ObjectId(authorId)});
+            console.log("aqui la consulkta",author)
+            if (!author) {
+                console.log(`Author not found with ID: ${authorId}`);
+            }
+            return author;
         } catch (error) {
             console.log('', error)
             return null;
@@ -82,5 +108,21 @@ export class AuthorModel {
             console.error('Error getting all authors: ', error);
         }
         return authors;
+    }
+    static async getAuthorByEmail(email: string): Promise<Author | null> {
+        try{
+            await AuthorModel.init();
+            if(!AuthorModel.collection) {
+                throw new Error('Author collection not initialized');
+            }
+            const author = await AuthorModel.collection.findOne({ email });
+            if (!author) {
+                console.log(`Author not found with email: ${email}`)
+            }
+            return author;
+        } catch(err) {
+            console.log('Error in Author', err)
+            return null;
+        }
     }
 }

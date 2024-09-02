@@ -1,31 +1,40 @@
 import { ObjectId, Collection, Db } from "mongodb";
 import { connectDB } from "../config/db";
-import { AuthorModel } from "./Author";
+import { Author, AuthorModel } from "./Author";
 interface Post {
   _id?: ObjectId;
   title: string;
   content: string;
-  authorId: ObjectId;
-  categories?: String[];
-  tags?: String[];
+  categories?: string[];
+  tags?: string[];
+  author: ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
 
+interface PostWithAuthor extends Post {
+  authorData: { name: string; avatarImage: string; email: string | undefined; } | null
+}
 export class PostModel {
   private static collection: Collection<Post> | null = null;
   static async init() {
     const db = await connectDB();
-    PostModel.collection = db.collection<Post>("posts");
+    PostModel.collection = db.collection("posts");
   }
-  static async createPost(postData: Omit<Post, 'authorId' | '_id' | 'createdAt' | 'updatedAt'>, authorId?: string): Promise<void> {
+  static async createPost(
+    postData: Omit<Post, "_id" | "createdAt" | "updatedAt">,
+    author: Author
+  ): Promise<void> {
     try {
       if (!PostModel.collection) {
         throw new Error("Collection is not inited");
       }
+      if (!author) {
+        throw new Error("Author ID is required");
+      }
       const postWithObjectId = {
         ...postData,
-        authorId: new ObjectId(authorId),
+        author: new ObjectId(author._id),
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -34,6 +43,7 @@ export class PostModel {
       console.error("Error creating post", err);
     }
   }
+
   static async getAllPosts(): Promise<Post[]> {
     try {
       if (!PostModel.collection) {
@@ -86,25 +96,25 @@ export class PostModel {
       console.error("Error deleting post", error);
     }
   }
-  static async getAllPostsWithAuthors(): Promise<Post[]> {
+  static async getPostsByAuthorId(authorId: string): Promise<PostWithAuthor[]> {
     try {
       if (!PostModel.collection) {
         throw new Error("Post collection not initialized");
       }
-
+      const objectId = new ObjectId(authorId);
       const posts = await PostModel.collection
-        .find({})
+        .find({ author: objectId })
         .sort({ createdAt: -1 })
         .toArray();
       const postsWithAuthors = await Promise.all(
         posts.map(async (post) => {
           const author = await AuthorModel.getAuthorById(
-            post.authorId.toString()
+            post.author.toString()
           );
           return {
             ...post,
-            author: author
-              ? { name: author.name, avatarImage: author.avatarImage }
+            authorData: author
+              ? { name: author.name, email: author.email, avatarImage: author.avatarImage ?? '' }
               : null,
           };
         })
@@ -112,6 +122,34 @@ export class PostModel {
       return postsWithAuthors;
     } catch (error) {
       console.error("Error getting all posts with authors", error);
+      return [];
+    }
+  }
+  static async getAllPostsWithAuthors(): Promise<PostWithAuthor[]> {
+    try {
+      if (!PostModel.collection) {
+        throw new Error("Post collection not initialized");
+      }
+      const posts = await PostModel.collection
+        .find({})
+        .sort({ createdAt: -1 })
+        .toArray();
+      const postsWithAuthors = await Promise.all(
+        posts.map(async (post) => {
+          const author = await AuthorModel.getAuthorById(
+            post.author.toString()
+          );
+          return {
+            ...post,
+            authorData: author
+              ? { name: author.name, email: author.email, avatarImage: author.avatarImage ?? '' }
+              : null,
+          };
+        })
+      );
+      return postsWithAuthors;
+    } catch (err) {
+      console.log("error", err);
       return [];
     }
   }

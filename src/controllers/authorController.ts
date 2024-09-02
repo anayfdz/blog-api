@@ -1,10 +1,19 @@
 import { Request, Response } from 'express';
 import { AuthorModel } from '../models/Author';
+import { AuthenticatedRequest } from '../types/types';
 
 export class AuthorController {
     static async createAuthor(req: Request, res: Response): Promise<void> {
         try {
-            const authorData = req.body;
+            const {name, avatarImage, email,description} = req.body;
+            const authorData = {
+                email,
+                name,
+                avatarImage,
+                description,
+                createdAt: new Date(),
+                updatedAt: new Date()
+            }
             await AuthorModel.createAuthor(authorData);
             res.status(201).json({ message: 'Author succesfully' });
         } catch (error) {

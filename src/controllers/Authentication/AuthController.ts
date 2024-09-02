@@ -62,7 +62,7 @@ export class AuthController {
           return;
       }
 
-      const token = jwt.sign({ email }, JWT_SECRET, { expiresIn: "1h" });
+      const token = jwt.sign({ email }, JWT_SECRET, { expiresIn: "72h" });
       res.status(200).json({ token});
     } catch (err) {
       console.error("Error during authentication", err);

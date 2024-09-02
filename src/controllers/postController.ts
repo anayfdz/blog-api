@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
-import { PostModel } from '../models/Post'
+import { PostModel } from '../models/Post';
+import { AuthorModel } from '../models/Author';
 import {AuthenticatedRequest} from '../types/types'
+import { ObjectId } from 'mongodb';
 export class PostController {
     static async createPost(req: AuthenticatedRequest, res: Response):Promise<void> {
         try {
@@ -9,13 +11,18 @@ export class PostController {
                 res.status(400).json({ message: 'Title and content are required' });
                 return;
             }
-            const authorId = req.user?.iat;
-            console.log(authorId)
-            if (!authorId) {
+            const authorEmail = req.user?.email;
+            console.log('author', authorEmail);
+            if (!authorEmail) {
                 res.status(401).json({ message: 'Unauthorized' });
                 return;
+              }
+            const authorData = await AuthorModel.getAuthorByEmail(authorEmail);
+            if (!authorData) {
+                res.status(404).json({message: 'Author not found'})
+                return;
             }
-
+            const authorId = new ObjectId(authorData._id)
             const postData = {
                 title,
                 content,
@@ -26,7 +33,7 @@ export class PostController {
                 updatedAt: new Date()
             }
 
-            await PostModel.createPost(postData);
+            await PostModel.createPost(postData, authorData);
             res.status(201).json({message: 'Post created successfully'});
         } catch (error) {
             console.error('Error creating post', error);
@@ -35,7 +42,7 @@ export class PostController {
     };
     static async getAllPosts(req: Request, res: Response): Promise<void> {
         try {
-            const posts = await PostModel.getAllPosts();
+            const posts = await PostModel.getAllPostsWithAuthors();
             res.status(200).json({message: 'Successfully retrieved all posts', data: posts});
         } catch (error) {
             console.error('Error getting all posts', error);
@@ -80,7 +87,20 @@ export class PostController {
     }
     static async getAllPostsWithAuthors(req: Request, res: Response) {
         try {
-            const postsWithAuthors = await PostModel.getAllPostsWithAuthors();
+            const posts = await PostModel.getAllPosts();
+            const postsWithAuthors = [];
+            for (const post of posts) {
+                const author = await AuthorModel.getAuthorById(post.author.toString());
+                postsWithAuthors.push({
+                    ...post,
+                    author: {
+                        name: author?.name,
+                        avatarImage:  author?.avatarImage,
+                        description: author?.description
+                    }
+                })
+            }
+            console.log('aqui los post con author',postsWithAuthors)
             res.status(200).json(postsWithAuthors);
         } catch (error) {
             console.error('Error fetching posts with authors:', error);
