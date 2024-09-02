@@ -4,10 +4,10 @@ import { authenticateJWT } from '../middleware/authMiddleware';
 
 const authorRoutes  = express.Router();
 
-authorRoutes .post('/authors', authenticateJWT,  AuthorController.createAuthor);
-authorRoutes .put('/authors/:id', AuthorController.updateAuthor);
-authorRoutes .delete('/authors/:id', AuthorController.deleteAuthor);
-authorRoutes .get('/authors/:id', AuthorController.getAuthorById);
-authorRoutes .get('/authors', AuthorController.getAllAuthors);
+authorRoutes .post('/', authenticateJWT,  AuthorController.createAuthor);
+authorRoutes .put('/:id', AuthorController.updateAuthor);
+authorRoutes .delete('/:id', AuthorController.deleteAuthor);
+authorRoutes .get('/:id', AuthorController.getAuthorById);
+authorRoutes .get('/', AuthorController.getAllAuthors);
 
 export { authorRoutes } ;

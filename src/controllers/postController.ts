@@ -52,6 +52,7 @@ export class PostController {
     static async getPostById(req: Request, res: Response): Promise<void> {
         try {
             const {id} = req.params;
+            console.log("aqui el controller",id)
             const post = await PostModel.getPostById(id);
             if (post) {
                 res.status(200).json({data: post});

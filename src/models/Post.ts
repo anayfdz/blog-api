@@ -68,6 +68,7 @@ export class PostModel {
         _id: new ObjectId(id),
       });
       return post;
+      console.log("aqui la busqueda",post)
     } catch (error) {
       console.error("Error getting post by id", error);
     }
