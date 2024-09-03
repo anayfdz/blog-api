@@ -1,12 +1,14 @@
 import { ObjectId, Collection, Db } from "mongodb";
 import { connectDB } from "../config/db";
 import { Author, AuthorModel } from "./Author";
+import { CommentModel, Comment } from "./Comment";
 interface Post {
   _id?: ObjectId;
   title: string;
   content: string;
   categories?: string[];
   tags?: string[];
+  comments: Comment[];
   author: ObjectId;
   createdAt: Date;
   updatedAt: Date;
@@ -152,6 +154,19 @@ export class PostModel {
     } catch (err) {
       console.log("error", err);
       return [];
+    }
+  }
+  static async getCommentsByPostId(postId: string): Promise<CommentModel[]> {
+    try {
+      const post = await PostModel.getPostById(postId);
+      if (!post) {
+        throw new Error('Post no encontrado');
+      }
+      const comments = await CommentModel.findComments({ post: post._id })
+      return comments;
+    } catch (error) {
+      console.error('Error obteniendo comentarios:', error);
+      return []
     }
   }
 }

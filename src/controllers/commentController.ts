@@ -1,9 +1,10 @@
 import { Request, Response } from 'express';
 import { CommentModel } from '../models/Comment';
+import { LikeModel } from '../models/LikeCounter';
 export class CommentController {
     static async createComment(req: Request, res: Response): Promise<void> {
         try {
-            const commentData = req.body;
+            const commentData = { ...req.body};
             await CommentModel.createComment(commentData);
             res.status(200).json({message: 'Comment created successfully'});
 
@@ -51,4 +52,14 @@ export class CommentController {
             res.status(500).json({ message: 'Internal server error' });
         }
     }
+    static async likeComment(req: Request, res: Response) {
+        const commentId = req.params.id;
+        try {
+          await LikeModel.likeContent('comment', commentId, commentId); // pasa el commentId
+          res.status(200).send({ message: 'Comment liked successfully' });
+        } catch (error) {
+          console.error('Error liking comment:', error);
+          res.status(500).send({ message: 'Error liking comment' });
+        }
+      }
 }

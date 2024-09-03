@@ -30,7 +30,8 @@ export class PostController {
                 tags: Array.isArray(tags) ? tags : [tags],
                 author: authorId,
                 createdAt: new Date(),
-                updatedAt: new Date()
+                updatedAt: new Date(),
+                comments: []
             }
 
             await PostModel.createPost(postData, authorData);
@@ -106,6 +107,20 @@ export class PostController {
         } catch (error) {
             console.error('Error fetching posts with authors:', error);
             res.status(500).json({ message: 'Error fetching posts with authors' });
+        }
+    }
+    static async getAllPostWithComments(req: Request, res: Response) {
+        try {
+            if (!req.params.id || typeof req.params.id !== 'string') {
+                res.status(400).json({ message: 'Invalid post id' });
+                return;
+              }
+            const postId = req.params.id;
+            const posts = await PostModel.getCommentsByPostId(postId);
+            res.status(200).json({message: 'Successfully retrieved all posts', data: posts});
+        } catch (error) {
+            console.error('Error getting all posts', error);
+            res.status(500).json({ message: 'Internal server error'})
         }
     }
 }

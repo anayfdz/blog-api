@@ -1,16 +1,13 @@
 import { ObjectId, Collection } from "mongodb";
 import { connectDB } from '../config/db';
+import { PostModel } from "./Post";
 
-interface Comment {
+export interface Comment {
     _id?: ObjectId;
-    parentComment?: ObjectId;
     post: ObjectId;
     author: string;
-    authorEmail: string;
-    ipAddress: string;
     content: string;
-    isAproved: boolean;
-    commentLikes: number;
+    commentLikes?: number;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -26,11 +23,20 @@ export class CommentModel {
             if (!CommentModel.collection) {
                 throw new Error('Comment collection not initialized');
             }
-            await CommentModel.collection.insertOne({
+            const postId = commentData.post;
+            const post = await PostModel.getPostById(postId.toString());
+            if (!post) {
+                throw new Error('Post no encontrado');
+              }
+
+            const commentResult = {
                 ...commentData,
+                commentLikes: 0,
                 createdAt: new Date(),
                 updatedAt: new Date(),
-            });
+            };
+            post.comments.push(commentResult);
+            await PostModel.updatePost(postId.toString(), { comments: post.comments})
 
         } catch (err) {
             console.error('E',err);
@@ -79,4 +85,26 @@ export class CommentModel {
             throw new Error('Error getting all comments: ' + error.message);
         }
     }
+    static async likeComment(id: string): Promise<void> {
+        try{
+            if(!CommentModel.collection) {
+                throw new Error('Comment collection not initialized');
+            }
+            await CommentModel.collection.updateOne({_id: new ObjectId(id)},{$inc: { commentLikes: 1}})
+        } catch(error) {
+            console.log('Error linking comment:',error)
+        }
+    }
+    static async findComments(query: Partial<Comment>): Promise<Comment[]> {
+        try {
+          if (!CommentModel.collection) {
+            throw new Error('Comment collection not initialized');
+          }
+          const comments = await CommentModel.collection.find(query).toArray();
+          return comments;
+        } catch (error) {
+          console.error('Error finding comments:', error);
+          return []
+        }
+      }
 }

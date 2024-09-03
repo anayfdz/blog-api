@@ -5,7 +5,6 @@ import { CategoryModel } from "../models/Category";
 import { CommentModel } from "../models/Comment";
 import { LikeModel } from "../models/LikeCounter";
 import { PostModel } from "../models/Post";
-import { RoleModel } from "../models/Role";
 import { TagModel } from "../models/Tag";
 
 export const initializedDatabase = async (): Promise<void> => {
@@ -18,7 +17,6 @@ export const initializedDatabase = async (): Promise<void> => {
     await CommentModel.init();
     await LikeModel.init();
     await PostModel.init();
-    await RoleModel.init();
     await TagModel.init();
     console.log("Models initialized successfully.");
   } catch (err) {

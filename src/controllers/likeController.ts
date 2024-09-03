@@ -4,8 +4,8 @@ import { LikeModel } from "../models/LikeCounter";
 export class LikeController {
   static async likeContent(req: Request, res: Response): Promise<void> {
     try {
-      const { contentType, contentId } = req.body;
-      await LikeModel.likeContent(contentType, contentId);
+      const { contentType, contentId, commentId } = req.body;
+      await LikeModel.likeContent(contentType, contentId, commentId);
       res.status(201).send({ message: "Liked!" });
     } catch (e) {
       console.error("Error liking", e);

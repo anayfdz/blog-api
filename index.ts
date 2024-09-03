@@ -12,7 +12,6 @@ import { postRoutes } from './src/routes/postRoutes';
 import { commentRoutes } from './src/routes/commentRoutes';
 import { likeRoutes } from './src/routes/likeRoutes';
 import { tagRoutes } from './src/routes/tagRoutes'
-import { roleRoutes } from './src/routes/roleRoutes'
 import { config } from './src/config/env';
 import { applyMiddleware  } from './src/config/middleware';
 import { initializedDatabase } from './src/config/dbInitializer';
@@ -35,7 +34,6 @@ app.use('/api/posts', postRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/likes', likeRoutes);
 app.use('/api/tags', tagRoutes);
-app.use('/api/roles', roleRoutes);
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`)
