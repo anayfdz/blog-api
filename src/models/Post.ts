@@ -1,7 +1,7 @@
-import { ObjectId, Collection, Db } from "mongodb";
+import { ObjectId, Collection, Db, BulkWriteResult } from "mongodb";
 import { connectDB } from "../config/db";
 import { Author, AuthorModel } from "./Author";
-import { CommentModel, Comment } from "./Comment";
+import { CommentModel } from "./Comment";
 interface Post {
   _id?: ObjectId;
   title: string;
@@ -14,14 +14,31 @@ interface Post {
   updatedAt: Date;
 }
 
+interface Comment {
+  post: string;
+  content: string;
+  commentLikes: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
 interface PostWithAuthor extends Post {
-  authorData: { name: string; avatarImage: string; email: string | undefined; } | null
+  authorData: {
+    name: string;
+    avatarImage: string;
+    email: string | undefined;
+  } | null;
 }
 export class PostModel {
   private static collection: Collection<Post> | null = null;
   static async init() {
     const db = await connectDB();
     PostModel.collection = db.collection("posts");
+  }
+  static getCollection() {
+    if (!PostModel.collection) {
+      throw new Error("No post collection");
+    }
+    return PostModel.collection;
   }
   static async createPost(
     postData: Omit<Post, "_id" | "createdAt" | "updatedAt">,
@@ -70,24 +87,62 @@ export class PostModel {
         _id: new ObjectId(id),
       });
       return post;
-      console.log("aqui la busqueda",post)
+      console.log("aqui la busqueda", post);
     } catch (error) {
       console.error("Error getting post by id", error);
     }
     return null;
   }
-  static async updatePost(id: string, postData: Partial<Post>): Promise<void> {
+  static async updatePost(
+    id: string,
+    postData: Partial<Post>,
+    options?: any
+  ): Promise<void> {
     try {
       if (!PostModel.collection) {
         throw new Error("Post collection not initialized");
       }
       await PostModel.collection.updateOne(
         { _id: new ObjectId(id) },
-        { $set: postData }
+        { $set: postData },
+        options
       );
     } catch (error) {
       console.error("Error updating post", error);
     }
+  }
+  static async updateCommentLikes(postId: string): Promise<void> {
+    if (!PostModel.collection) {
+      throw new Error("Post collection not initialized");
+    }
+    // Convierte postId a ObjectId
+    const postObjectId = new ObjectId(postId);
+    const post = await PostModel.collection.findOne({ _id: postObjectId });
+    if (!post) {
+      throw new Error("Post not found");
+    }
+    const commentUpdates  = post.comments.map(comment => {
+      if(comment.post === postId) {
+        return { 
+          updateOne: { 
+            filter: { _id: postObjectId, "comments.post": comment.post},
+            update: { $inc: {"comments.$.commentLikes": 1}}
+          }
+        }
+      }
+      return null
+    }).filter(update => update !== null);
+
+    if(commentUpdates.length > 0) {
+      await PostModel.collection.bulkWrite(commentUpdates)
+    } else {
+      throw new Error("No matching comment found for the post")
+    }
+        // Actualiza el número de likes del comentario
+        await PostModel.collection.updateOne(
+          { _id: postObjectId, "comments.post": new ObjectId(postId) },
+          { $inc: { "comments.$.commentLikes": 1 } }
+      );
   }
   static async deletePost(id: string): Promise<void> {
     try {
@@ -117,7 +172,11 @@ export class PostModel {
           return {
             ...post,
             authorData: author
-              ? { name: author.name, email: author.email, avatarImage: author.avatarImage ?? '' }
+              ? {
+                  name: author.name,
+                  email: author.email,
+                  avatarImage: author.avatarImage ?? "",
+                }
               : null,
           };
         })
@@ -145,7 +204,11 @@ export class PostModel {
           return {
             ...post,
             authorData: author
-              ? { name: author.name, email: author.email, avatarImage: author.avatarImage ?? '' }
+              ? {
+                  name: author.name,
+                  email: author.email,
+                  avatarImage: author.avatarImage ?? "",
+                }
               : null,
           };
         })
@@ -156,17 +219,17 @@ export class PostModel {
       return [];
     }
   }
-  static async getCommentsByPostId(postId: string): Promise<CommentModel[]> {
-    try {
-      const post = await PostModel.getPostById(postId);
-      if (!post) {
-        throw new Error('Post no encontrado');
-      }
-      const comments = await CommentModel.findComments({ post: post._id })
-      return comments;
-    } catch (error) {
-      console.error('Error obteniendo comentarios:', error);
-      return []
-    }
-  }
+  // static async getCommentsByPostId(postId: string): Promise<CommentModel[]> {
+  //   try {
+  //     const post = await PostModel.getPostById(postId);
+  //     if (!post) {
+  //       throw new Error('Post no encontrado');
+  //     }
+  //     const comments = await CommentModel.findComments({ post: post._id })
+  //     return comments;
+  //   } catch (error) {
+  //     console.error('Error obteniendo comentarios:', error);
+  //     return []
+  //   }
 }
+// }

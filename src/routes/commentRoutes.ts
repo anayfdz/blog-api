@@ -8,6 +8,6 @@ commentRoutes.put('/:id',CommentController.updateComment);
 commentRoutes.delete('/:id',CommentController.deleteComment);
 commentRoutes.get('/:id',CommentController.getCommentById);
 commentRoutes.get('/',CommentController.getAllComments);
-commentRoutes.post('/:id/like', CommentController.likeComment)
+commentRoutes.post('/like', CommentController.likeComment)
 
 export { commentRoutes};

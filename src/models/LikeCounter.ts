@@ -1,12 +1,10 @@
 import { Collection, ObjectId } from "mongodb";
 import { connectDB } from "../config/db";
-
+import { PostModel } from "./Post";
 interface Like {
   _id?: ObjectId;
-  id: string;
   postId: string;
   userId: string;
-  commentId: string;
   likesNumber: number;
   createdAt: Date;
   updatedAt: Date;
@@ -21,34 +19,41 @@ export class LikeModel {
 
   static async likeContent(
     postId: string,
-    commentId: string,
     userId: string
   ): Promise<void> {
     if (!LikeModel.collection) {
       throw new Error("Collection is not inited yet");
     }
 
-    const post = await getPost(postId);
+    // Busca el post usando el ID proporcionado como string
+
+    const post = await PostModel.getPostById(postId);
     if(!post) {
       throw new Error("Post not found");
     }
-    const existingLike  = await getLike(postId, userId);
-    if (existingLike) {
-      throw new Error("You already liked this post");
-    }
-
-    // crear nuevo like
-    const like: Like = {
-      id: generateId(),
+     // Busca si ya existe un "like" para el post y el usuario dados
+    const existingLike = await LikeModel.collection.findOne({
       postId,
-      userId,
-      commentId,
-      likesNumber: 1,
-      createdAt: new Date()
+      userId 
+    });
+
+    if (existingLike) {
+       // Si existe, incrementa el número de "likes"
+      await LikeModel.collection.updateOne(
+        { _id: existingLike._id },
+        {$inc: { likesNumber: 1},
+       $set: { updatedAt: new Date() } }
+      );
+    } else {
+      // Si no existe, crea un nuevo "like"
+      await LikeModel.collection.insertOne({
+        postId,
+        userId,
+        likesNumber: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
     }
-    await saveLike();
-    await updatePostLikes(postId, like.likesNumber)
-    return like
   };
   static async unLikeContent(likeId: string): Promise<void> {
     if(!LikeModel.collection) {
@@ -57,16 +62,11 @@ export class LikeModel {
     await LikeModel.collection.deleteOne({ _id: new ObjectId(likeId) })
   }
   static async getLikesCount(
-    contentType: string,
-    contentId: string
   ): Promise<number> {
     if (!LikeModel.collection) {
       throw new Error("Collection is not inited yet");
     }
-    const existingLike = await LikeModel.collection.findOne({
-      contentType,
-      contentId,
-    });
+    const existingLike = await LikeModel.collection.findOne();
     return existingLike ? existingLike.likesNumber : 0;
   }
 }

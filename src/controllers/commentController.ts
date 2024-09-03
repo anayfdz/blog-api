@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { CommentModel } from '../models/Comment';
 import { LikeModel } from '../models/LikeCounter';
+import { PostModel } from '../models/Post';
 export class CommentController {
     static async createComment(req: Request, res: Response): Promise<void> {
         try {
@@ -53,9 +54,10 @@ export class CommentController {
         }
     }
     static async likeComment(req: Request, res: Response) {
-        const commentId = req.params.id;
         try {
-          await LikeModel.likeContent('comment', commentId, commentId); // pasa el commentId
+            const { postId, userId } = req.body;
+          await LikeModel.likeContent(postId, userId);
+          await PostModel.updateCommentLikes(postId);
           res.status(200).send({ message: 'Comment liked successfully' });
         } catch (error) {
           console.error('Error liking comment:', error);
