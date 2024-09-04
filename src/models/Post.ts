@@ -10,6 +10,7 @@ interface Post {
   categories?: string[];
   tags?: string[];
   comments: Comment[];
+  imagePath?: string;
   imageUrl?: string;
   author: ObjectId;
   createdAt: Date;
@@ -54,17 +55,25 @@ export class PostModel {
       if (!author) {
         throw new Error("Author ID is required");
       }
-      // Subir la imagen si se proporciona
       let imageUrl: string | undefined;
-      if (imagePath) {
-        imageUrl = await uploadImage(imagePath);
+      if(imagePath != null && imagePath !== undefined) {
+        console.log("URL after uploadImage in createPost:", imagePath);
+        try{
+          imageUrl = await uploadImage(imagePath);
+          console.log("URL after uploadImage in createPost:", imageUrl);
+        } catch(error) {
+          console.log("Error uploading image", error);
+        }
       }
+      console.log("Model - imagePath:", imagePath);
+        console.log("Model - imageUrl after uploadImage:", imageUrl);
       const postWithObjectId = {
         ...postData,
         author: new ObjectId(author._id),
         createdAt: new Date(),
         updatedAt: new Date(),
-        imageUrl: imageUrl,
+        imagePath,
+        imageUrl: imageUrl ? imageUrl : '',
       };
       await PostModel.collection.insertOne(postWithObjectId);
     } catch (err) {
