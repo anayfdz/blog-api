@@ -2,6 +2,7 @@ import { ObjectId, Collection, Db, BulkWriteResult } from "mongodb";
 import { connectDB } from "../config/db";
 import { Author, AuthorModel } from "./Author";
 import { CommentModel } from "./Comment";
+import { uploadImage } from '../config/uploadCloudinary'
 interface Post {
   _id?: ObjectId;
   title: string;
@@ -9,6 +10,7 @@ interface Post {
   categories?: string[];
   tags?: string[];
   comments: Comment[];
+  imageUrl?: string;
   author: ObjectId;
   createdAt: Date;
   updatedAt: Date;
@@ -42,7 +44,8 @@ export class PostModel {
   }
   static async createPost(
     postData: Omit<Post, "_id" | "createdAt" | "updatedAt">,
-    author: Author
+    author: Author,
+    imagePath?: string
   ): Promise<void> {
     try {
       if (!PostModel.collection) {
@@ -51,11 +54,17 @@ export class PostModel {
       if (!author) {
         throw new Error("Author ID is required");
       }
+      // Subir la imagen si se proporciona
+      let imageUrl: string | undefined;
+      if (imagePath) {
+        imageUrl = await uploadImage(imagePath);
+      }
       const postWithObjectId = {
         ...postData,
         author: new ObjectId(author._id),
         createdAt: new Date(),
         updatedAt: new Date(),
+        imageUrl: imageUrl,
       };
       await PostModel.collection.insertOne(postWithObjectId);
     } catch (err) {
@@ -96,15 +105,20 @@ export class PostModel {
   static async updatePost(
     id: string,
     postData: Partial<Post>,
-    options?: any
+    options?: any,
+    imagePath?: string
   ): Promise<void> {
     try {
       if (!PostModel.collection) {
         throw new Error("Post collection not initialized");
       }
+      let imageUrl: string | undefined;
+      if (imagePath) {
+        imageUrl = await uploadImage(imagePath);
+      }
       await PostModel.collection.updateOne(
         { _id: new ObjectId(id) },
-        { $set: postData },
+        { $set: postData, imageUrl: imageUrl, },
         options
       );
     } catch (error) {
@@ -219,17 +233,17 @@ export class PostModel {
       return [];
     }
   }
-  // static async getCommentsByPostId(postId: string): Promise<CommentModel[]> {
-  //   try {
-  //     const post = await PostModel.getPostById(postId);
-  //     if (!post) {
-  //       throw new Error('Post no encontrado');
-  //     }
-  //     const comments = await CommentModel.findComments({ post: post._id })
-  //     return comments;
-  //   } catch (error) {
-  //     console.error('Error obteniendo comentarios:', error);
-  //     return []
-  //   }
+  static async getCommentsByPostId(postId: string): Promise<Comment[]> {
+    try {
+      const post = await PostModel.getPostById(postId);
+      if (!post) {
+        throw new Error('Post no encontrado');
+      }
+      const comments = await CommentModel.findComments({ post: postId })
+      return comments;
+    } catch (error) {
+      console.error('Error obteniendo comentarios:', error);
+      return []
+    }
 }
-// }
+}

@@ -7,6 +7,7 @@ export class PostController {
     static async createPost(req: AuthenticatedRequest, res: Response):Promise<void> {
         try {
             const { title, content, categories, tags } = req.body;
+            const imagePath = req.file?.path;
             if (!title || !content) {
                 res.status(400).json({ message: 'Title and content are required' });
                 return;
@@ -31,7 +32,8 @@ export class PostController {
                 author: authorId,
                 createdAt: new Date(),
                 updatedAt: new Date(),
-                comments: []
+                comments: [],
+                imagePath
             }
 
             await PostModel.createPost(postData, authorData);

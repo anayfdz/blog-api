@@ -7,7 +7,7 @@ export interface Comment {
   post: string;
   author: string;
   content: string;
-  commentLikes?: number;
+  commentLikes: number;
   createdAt: Date;
   updatedAt: Date;
 }

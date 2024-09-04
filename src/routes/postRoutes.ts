@@ -1,9 +1,10 @@
 import express, {Request, Response } from 'express';
 import { PostController } from '../controllers/postController';
 import {authenticateJWT} from "../middleware/authMiddleware"
+import upload from '../middleware/upload';
 const postRoutes = express.Router();
 
-postRoutes.post('/',authenticateJWT,PostController.createPost);
+postRoutes.post('/',authenticateJWT,upload.single('image'),PostController.createPost);
 postRoutes.get('/',PostController.getAllPosts);
 postRoutes.get('/', PostController.getAllPostsWithAuthors);
 postRoutes.get('/comments/:id', PostController.getAllPostWithComments)
