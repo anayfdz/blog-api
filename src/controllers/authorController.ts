@@ -1,16 +1,24 @@
 import { Request, Response } from 'express';
 import { AuthorModel } from '../models/Author';
 import { AuthenticatedRequest } from '../types/types';
+import { uploadImage } from "../config/uploadCloudinary";
 
 export class AuthorController {
     static async createAuthor(req: Request, res: Response): Promise<void> {
         try {
-            const {name, avatarImage, email,description} = req.body;
+            const {name, email,description} = req.body;
+            const imagePath = req.file?.path;
+            let avatarImage: string | undefined;
+            if (imagePath) {
+                avatarImage = await uploadImage(imagePath);
+                console.log("Avatar image URL after uploadImage:", avatarImage);
+            }
             const authorData = {
                 email,
                 name,
-                avatarImage,
+                avatarImage: avatarImage ||"",
                 description,
+                imagePath,
                 createdAt: new Date(),
                 updatedAt: new Date()
             }
@@ -23,8 +31,24 @@ export class AuthorController {
     }
     static async updateAuthor(req: Request, res: Response): Promise<void> {
         const { id } = req.params;
-        const authorData = req.body;
+        const { name, email, description } = req.body;
+        const imagePath = req.file?.path;
         try {
+            let avatarImage: string | undefined;
+            if (imagePath) {
+                avatarImage = await uploadImage(imagePath);
+                console.log("Avatar image URL after uploadImage:", avatarImage);
+            }
+            // Prepara los datos para la actualización
+            const authorData: any = {
+                name,
+                email,
+                description,
+                updatedAt: new Date(),
+            };
+            if (avatarImage) {
+                authorData.avatarImage = avatarImage;
+            }
             await AuthorModel.updateAuthor(id, authorData);
             res.status(200).json({ message: 'Autor actualizado con exito' })
         } catch (error) {

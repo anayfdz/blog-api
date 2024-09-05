@@ -127,7 +127,12 @@ export class PostModel {
       }
       await PostModel.collection.updateOne(
         { _id: new ObjectId(id) },
-        { $set: postData, imageUrl: imageUrl, },
+        { 
+          $set: {
+            ...postData,
+            imageUrl: imageUrl
+          } 
+        },
         options
       );
     } catch (error) {
@@ -167,6 +172,23 @@ export class PostModel {
           { $inc: { "comments.$.commentLikes": 1 } }
       );
   }
+
+  static async addCommentToPost(postId: string, comment: Comment): Promise<void> {
+    try {
+      if (!PostModel.collection) {
+        throw new Error("Post collection not initialized");
+      }
+
+      await PostModel.collection.updateOne(
+        { _id: new ObjectId(postId) },
+        { $push: { comments: comment } }
+      );
+    } catch (error) {
+      console.error("Error adding comment to post", error);
+    }
+  }
+
+  
   static async deletePost(id: string): Promise<void> {
     try {
       if (!PostModel.collection) {

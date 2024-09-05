@@ -36,9 +36,7 @@ export class CommentModel {
         updatedAt: new Date(),
       };
       post.comments.push(commentResult);
-      await PostModel.updatePost(postId.toString(), {
-        comments: post.comments,
-      });
+      await PostModel.addCommentToPost(commentData.post, commentResult);
     } catch (err) {
       console.error("E", err);
     }
@@ -51,9 +49,10 @@ export class CommentModel {
       if (!CommentModel.collection) {
         throw new Error("Comment collection not initialized");
       }
+      const updateData = { ...commentData, updatedAt: new Date() };
       await CommentModel.collection.updateOne(
         { _id: new ObjectId(id) },
-        { $set: { ...commentData, updatedAt: new Date() } }
+        { $set: { ...updateData, updatedAt: new Date() } }
       );
     } catch (error) {
       console.error("Error updating comment: ", error);

@@ -12,13 +12,11 @@ export class PostController {
     try {
         const { title, content, categories, tags } = req.body;
         const imagePath = req.file?.path;
-        console.log("imagePath in controller:", imagePath);
         if (!title || !content) {
             res.status(400).json({ message: "Title and content are required" });
             return;
         }
         const authorEmail = req.user?.email;
-        console.log("author", authorEmail);
         if (!authorEmail) {
             res.status(401).json({ message: "Unauthorized" });
             return;
@@ -34,8 +32,6 @@ export class PostController {
         if (imagePath) {
             imageUrl = await uploadImage(imagePath);
         }
-        console.log("Controller - imagePath:", imagePath);
-        console.log("Controller - imageUrl after uploadImage:", imageUrl);
 
       const postData = {
         title,

@@ -2,10 +2,16 @@ import { Request, Response } from 'express';
 import { CommentModel } from '../models/Comment';
 import { LikeModel } from '../models/LikeCounter';
 import { PostModel } from '../models/Post';
+
 export class CommentController {
     static async createComment(req: Request, res: Response): Promise<void> {
         try {
+            
             const commentData = { ...req.body};
+            if (!commentData.post || !commentData.content) {
+                res.status(400).json({ message: 'Post ID and content are required' });
+                return;
+              }
             await CommentModel.createComment(commentData);
             res.status(200).json({message: 'Comment created successfully'});
 

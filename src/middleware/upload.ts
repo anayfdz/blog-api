@@ -1,24 +1,28 @@
 import multer from 'multer';
 import path from 'path';
 
-// Configura el almacenamiento para multer
+// Configuración de almacenamiento para multer
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/'); // Asegúrate de que esta carpeta exista
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/'); // Carpeta donde se almacenan las imágenes
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    }
 });
 
-// Crea el middleware de multer para manejar la carga de archivos
-const upload = multer({ storage }).single('imageUrl');
-
-// Middleware adicional para depuración
-const uploadMiddleware = (req: any, res: any, next: any) => {
-  console.log("Archivo recibido por multer:", req.file); // Log para depuración
-  next();
+// Filtramos el tipo de archivo que aceptamos
+const fileFilter = (req: any, file: Express.Multer.File, cb: Function) => {
+    const allowedTypes = ['image/jpeg', 'image/png'];
+    if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+    } else {
+        cb(new Error('Invalid file type'), false);
+    }
 };
 
-// Exporta multer y el middleware adicional por separado
-export { upload, uploadMiddleware };
+// Configuración de multer
+const upload = multer({ storage, fileFilter });
+
+export { upload };
