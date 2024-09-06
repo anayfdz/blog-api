@@ -43,6 +43,6 @@ app.listen(port, () => {
     console.error('Error connecting to the database: ', error);
 });
 
-export { app };
+export default app;
 
 
