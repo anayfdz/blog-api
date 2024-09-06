@@ -48,6 +48,7 @@ export class AuthorModel {
         console.log('Error adding post to author: ', error)
     }
 }
+//hola
     static async updateAuthor(authorId: string,authorData: Partial<Omit<Author, 'id' | '_id' | 'postID' | 'createdAt' | 'updatedAt'>>): Promise<void> {
         try {
             if (!AuthorModel.collection) {
