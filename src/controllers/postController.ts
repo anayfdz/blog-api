@@ -11,7 +11,7 @@ export class PostController {
   ): Promise<void> {
     try {
         const { title, content, categories, tags } = req.body;
-        const imagePath = req.file?.path;
+        const file = req.file
         if (!title || !content) {
             res.status(400).json({ message: "Title and content are required" });
             return;
@@ -29,9 +29,19 @@ export class PostController {
         const authorId = new ObjectId(authorData._id);
         // Subir la imagen si existe
         let imageUrl: string | undefined;
-        if (imagePath) {
-            imageUrl = await uploadImage(imagePath);
-        }
+        // if (file) {
+        //   const buffer = file.buffer;
+        //   const publicId = file.originalname.replace(/\.[^/.]+$/, "");
+        //   try {
+        //     const result = await uploadImage(buffer, publicId);
+        //     console.log("Resultado de imagen:", result);
+        //     imageUrl = result.imageUrl;
+        //     console.log("Resultado de imagen 2:", imageUrl);
+        // } catch (error) {
+        //     console.error('Error uploading image:', error);
+        //     //imageUrl = "";
+        // }
+        // }
 
       const postData = {
         title,
@@ -42,12 +52,12 @@ export class PostController {
         createdAt: new Date(),
         updatedAt: new Date(),
         comments: [],
-        imagePath,
-        imageUrl: imageUrl || "",
+        imagePath: file ? file.originalname : "",
+        imageUrl,
       };
-      console.log("postData before saving:", postData);
+      console.log("postData before saving controller:", postData);
 
-      await PostModel.createPost(postData, authorData, imagePath);
+      await PostModel.createPost(postData, authorData);
       res.status(201).json({ message: "Post created successfully" });
     } catch (error) {
       console.error("Error creating post", error);
@@ -84,7 +94,22 @@ export class PostController {
     try {
       const { id } = req.params;
       const postData = req.body;
-      await PostModel.updatePost(id, postData);
+      const file = req.file;
+      let imageUrl: string | undefined;
+      if (file) {
+        console.log("File buffer:", file.buffer); 
+        const buffer = file.buffer;
+        const publicId = file.originalname.replace(/\.[^/.]+$/, "");
+        try {
+          const result = await uploadImage(buffer, publicId);
+          console.log("uploadImage result:", result);
+          imageUrl = result.imageUrl;
+      } catch (error) {
+          console.error('Error uploading image:', error);
+          imageUrl = "";
+      }
+      }
+      await PostModel.updatePost(id, { ...postData, imageUrl });
       res
         .status(200)
         .json({ message: "Se ha actualizado el post correctamente" });

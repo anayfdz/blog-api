@@ -10,7 +10,7 @@ const authMiddleware_1 = require("../middleware/authMiddleware");
 const upload_1 = require("../middleware/upload");
 const postRoutes = express_1.default.Router();
 exports.postRoutes = postRoutes;
-postRoutes.post('/', authMiddleware_1.authenticateJWT, upload_1.upload.single('imageUrl'), postController_1.PostController.createPost);
+postRoutes.post('/', authMiddleware_1.authenticateJWT, upload_1.upload.single('file'), postController_1.PostController.createPost);
 postRoutes.get('/', postController_1.PostController.getAllPosts);
 postRoutes.get('/', postController_1.PostController.getAllPostsWithAuthors);
 postRoutes.get('/comments/:id', postController_1.PostController.getAllPostWithComments);

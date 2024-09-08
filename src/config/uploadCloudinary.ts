@@ -1,5 +1,5 @@
 import cloudinary from 'cloudinary';
-
+import { v2 as cloudinaryV2 } from 'cloudinary';
 // Configuración de Cloudinary
 cloudinary.v2.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -7,19 +7,23 @@ cloudinary.v2.config({
   api_secret: process.env.API_SECRET,
 });
 
-export const uploadImage = async (imagePath: string): Promise<string> => {
+interface UploadImageResult {
+  imageUrl: string;
+}
+
+// Función para subir imagen a Cloudinary
+export const uploadImage = async (buffer: Buffer, publicId: string): Promise<UploadImageResult> => {
   return new Promise((resolve, reject) => {
-    cloudinary.v2.uploader.upload(imagePath, (error, result) => {
-      if (error) {
-        reject(error);
-      } else {
-        if (result && result.secure_url) {
-          resolve(result.secure_url);
-          console.log('Resultado de subida:', result);
-        } else {
-          reject(new Error('Image upload result is undefined or missing secure_url')); 
+    cloudinaryV2.uploader.upload_stream(
+      { public_id: publicId, resource_type: 'image' },
+      (error, result) => {
+        if (error) {
+          console.error('Error uploading image to Cloudinary:', error);
+          return reject(error);
         }
+        console.log("uploadImage result:", result);
+          resolve({imageUrl: result?.secure_url || ''});
       }
-    });
+    ).end(buffer);
   });
 };

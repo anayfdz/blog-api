@@ -2,7 +2,7 @@ import { ObjectId, Collection, Db, BulkWriteResult } from "mongodb";
 import { connectDB } from "../config/db";
 import { Author, AuthorModel } from "./Author";
 import { CommentModel } from "./Comment";
-import { uploadImage } from '../config/uploadCloudinary'
+import { uploadImage } from "../config/uploadCloudinary";
 interface Post {
   _id?: ObjectId;
   title: string;
@@ -46,7 +46,7 @@ export class PostModel {
   static async createPost(
     postData: Omit<Post, "_id" | "createdAt" | "updatedAt">,
     author: Author,
-    imagePath?: string
+    //file?: Express.Multer.File
   ): Promise<void> {
     try {
       if (!PostModel.collection) {
@@ -55,26 +55,28 @@ export class PostModel {
       if (!author) {
         throw new Error("Author ID is required");
       }
-      let imageUrl: string | undefined;
-      if(imagePath != null && imagePath !== undefined) {
-        console.log("URL after uploadImage in createPost:", imagePath);
-        try{
-          imageUrl = await uploadImage(imagePath);
-          console.log("URL after uploadImage in createPost:", imageUrl);
-        } catch(error) {
-          console.log("Error uploading image", error);
-        }
-      }
-      console.log("Model - imagePath:", imagePath);
-        console.log("Model - imageUrl after uploadImage:", imageUrl);
+      //let imageUrl: string | undefined = "";
+      // if (file) {
+      //   const publicId = file.originalname.replace(/\.[^/.]+$/, "");
+      //   const buffer = file.buffer;
+      //   try {
+      //     const result = await uploadImage(buffer, publicId);
+      //     imageUrl = result.imageUrl;
+      //   } catch (error) {
+      //     console.error("Error uploading image:", error);
+      //     // imageUrl = "";
+      //   }
+      // }
+      //console.log("Model - imageUrl after uploadImage:", imageUrl);
       const postWithObjectId = {
         ...postData,
         author: new ObjectId(author._id),
         createdAt: new Date(),
         updatedAt: new Date(),
-        imagePath,
-        imageUrl: imageUrl ? imageUrl : '',
+        //imagePath: file ? file.originalname : "",
+        //imageUrl: imageUrl,
       };
+      //console.log("postData before saving adentro:", postWithObjectId);
       await PostModel.collection.insertOne(postWithObjectId);
     } catch (err) {
       console.error("Error creating post", err);
@@ -115,23 +117,33 @@ export class PostModel {
     id: string,
     postData: Partial<Post>,
     options?: any,
-    imagePath?: string
+    file?: Express.Multer.File
   ): Promise<void> {
     try {
       if (!PostModel.collection) {
         throw new Error("Post collection not initialized");
       }
       let imageUrl: string | undefined;
-      if (imagePath) {
-        imageUrl = await uploadImage(imagePath);
+      if (file) {
+        const buffer = file.buffer;
+        const publicId = file.originalname.replace(/\.[^/.]+$/, "");
+        try {
+          const result = await uploadImage(buffer, publicId);
+          imageUrl = result.imageUrl;
+        } catch (error) {
+          console.error("Error uploading image:", error);
+          imageUrl = "";
+        }
       }
+      console.log("Model - imageUrl after uploadImage:", imageUrl);
+
       await PostModel.collection.updateOne(
         { _id: new ObjectId(id) },
-        { 
+        {
           $set: {
             ...postData,
-            imageUrl: imageUrl
-          } 
+            imageUrl: imageUrl,
+          },
         },
         options
       );
@@ -149,31 +161,36 @@ export class PostModel {
     if (!post) {
       throw new Error("Post not found");
     }
-    const commentUpdates  = post.comments.map(comment => {
-      if(comment.post === postId) {
-        return { 
-          updateOne: { 
-            filter: { _id: postObjectId, "comments.post": comment.post},
-            update: { $inc: {"comments.$.commentLikes": 1}}
-          }
+    const commentUpdates = post.comments
+      .map((comment) => {
+        if (comment.post === postId) {
+          return {
+            updateOne: {
+              filter: { _id: postObjectId, "comments.post": comment.post },
+              update: { $inc: { "comments.$.commentLikes": 1 } },
+            },
+          };
         }
-      }
-      return null
-    }).filter(update => update !== null);
+        return null;
+      })
+      .filter((update) => update !== null);
 
-    if(commentUpdates.length > 0) {
-      await PostModel.collection.bulkWrite(commentUpdates)
+    if (commentUpdates.length > 0) {
+      await PostModel.collection.bulkWrite(commentUpdates);
     } else {
-      throw new Error("No matching comment found for the post")
+      throw new Error("No matching comment found for the post");
     }
-        // Actualiza el número de likes del comentario
-        await PostModel.collection.updateOne(
-          { _id: postObjectId, "comments.post": new ObjectId(postId) },
-          { $inc: { "comments.$.commentLikes": 1 } }
-      );
+    // Actualiza el número de likes del comentario
+    await PostModel.collection.updateOne(
+      { _id: postObjectId, "comments.post": new ObjectId(postId) },
+      { $inc: { "comments.$.commentLikes": 1 } }
+    );
   }
 
-  static async addCommentToPost(postId: string, comment: Comment): Promise<void> {
+  static async addCommentToPost(
+    postId: string,
+    comment: Comment
+  ): Promise<void> {
     try {
       if (!PostModel.collection) {
         throw new Error("Post collection not initialized");
@@ -188,7 +205,6 @@ export class PostModel {
     }
   }
 
-  
   static async deletePost(id: string): Promise<void> {
     try {
       if (!PostModel.collection) {
@@ -268,13 +284,13 @@ export class PostModel {
     try {
       const post = await PostModel.getPostById(postId);
       if (!post) {
-        throw new Error('Post no encontrado');
+        throw new Error("Post no encontrado");
       }
-      const comments = await CommentModel.findComments({ post: postId })
+      const comments = await CommentModel.findComments({ post: postId });
       return comments;
     } catch (error) {
-      console.error('Error obteniendo comentarios:', error);
-      return []
+      console.error("Error obteniendo comentarios:", error);
+      return [];
     }
-}
+  }
 }

@@ -17,7 +17,7 @@ class PostModel {
         }
         return PostModel.collection;
     }
-    static async createPost(postData, author, imagePath) {
+    static async createPost(postData, author, file) {
         try {
             if (!PostModel.collection) {
                 throw new Error("Collection is not inited");
@@ -25,27 +25,31 @@ class PostModel {
             if (!author) {
                 throw new Error("Author ID is required");
             }
-            let imageUrl;
-            if (imagePath != null && imagePath !== undefined) {
-                console.log("URL after uploadImage in createPost:", imagePath);
+            let imageUrl = '';
+            if (file) {
+                const publicId = file.originalname.replace(/\.[^/.]+$/, "");
+                const buffer = file.buffer;
                 try {
-                    imageUrl = await (0, uploadCloudinary_1.uploadImage)(imagePath);
-                    console.log("URL after uploadImage in createPost:", imageUrl);
+                    const result = await (0, uploadCloudinary_1.uploadImage)(buffer, publicId);
+                    console.log("HOOYYY:", result);
+                    imageUrl = result.imageUrl;
+                    ;
                 }
                 catch (error) {
-                    console.log("Error uploading image", error);
+                    console.error('Error uploading image:', error);
+                    // imageUrl = "";
                 }
             }
-            console.log("Model - imagePath:", imagePath);
             console.log("Model - imageUrl after uploadImage:", imageUrl);
             const postWithObjectId = {
                 ...postData,
                 author: new mongodb_1.ObjectId(author._id),
                 createdAt: new Date(),
                 updatedAt: new Date(),
-                imagePath,
-                imageUrl: imageUrl ? imageUrl : '',
+                imagePath: file ? file.originalname : "",
+                imageUrl: imageUrl,
             };
+            console.log("postData before saving adentro:", postWithObjectId);
             await PostModel.collection.insertOne(postWithObjectId);
         }
         catch (err) {
@@ -84,15 +88,25 @@ class PostModel {
         }
         return null;
     }
-    static async updatePost(id, postData, options, imagePath) {
+    static async updatePost(id, postData, options, file) {
         try {
             if (!PostModel.collection) {
                 throw new Error("Post collection not initialized");
             }
             let imageUrl;
-            if (imagePath) {
-                imageUrl = await (0, uploadCloudinary_1.uploadImage)(imagePath);
+            if (file) {
+                const buffer = file.buffer;
+                const publicId = file.originalname.replace(/\.[^/.]+$/, "");
+                try {
+                    const result = await (0, uploadCloudinary_1.uploadImage)(buffer, publicId);
+                    imageUrl = result.imageUrl;
+                }
+                catch (error) {
+                    console.error('Error uploading image:', error);
+                    imageUrl = "";
+                }
             }
+            console.log("Model - imageUrl after uploadImage:", imageUrl);
             await PostModel.collection.updateOne({ _id: new mongodb_1.ObjectId(id) }, {
                 $set: {
                     ...postData,

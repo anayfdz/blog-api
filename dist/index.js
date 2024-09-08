@@ -3,7 +3,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.app = void 0;
 const express_1 = __importDefault(require("express"));
 const userRoutes_1 = require("./src/routes/userRoutes");
 const authRoutes_1 = __importDefault(require("./src/routes/authRoutes"));
@@ -17,7 +16,6 @@ const env_1 = require("./src/config/env");
 const middleware_1 = require("./src/config/middleware");
 const dbInitializer_1 = require("./src/config/dbInitializer");
 const app = (0, express_1.default)();
-exports.app = app;
 const port = env_1.config.PORT;
 // Middleware
 (0, middleware_1.applyMiddleware)(app);
@@ -39,3 +37,4 @@ const port = env_1.config.PORT;
     .catch((error) => {
     console.error('Error connecting to the database: ', error);
 });
+exports.default = app;

@@ -7,18 +7,27 @@ class AuthorController {
     static async createAuthor(req, res) {
         try {
             const { name, email, description } = req.body;
+            const file = req.file;
             const imagePath = req.file?.path;
             let avatarImage;
-            if (imagePath) {
-                avatarImage = await (0, uploadCloudinary_1.uploadImage)(imagePath);
-                console.log("Avatar image URL after uploadImage:", avatarImage);
+            let imageUrl;
+            if (file) {
+                const buffer = file.buffer;
+                const publicId = file.originalname.replace(/\.[^/.]+$/, "");
+                try {
+                    const result = await (0, uploadCloudinary_1.uploadImage)(buffer, publicId);
+                    avatarImage = result.imageUrl;
+                }
+                catch (error) {
+                    console.error('Error uploading image:', error);
+                    avatarImage = "";
+                }
             }
             const authorData = {
                 email,
                 name,
                 avatarImage: avatarImage || "",
                 description,
-                imagePath,
                 createdAt: new Date(),
                 updatedAt: new Date()
             };
@@ -33,12 +42,20 @@ class AuthorController {
     static async updateAuthor(req, res) {
         const { id } = req.params;
         const { name, email, description } = req.body;
-        const imagePath = req.file?.path;
+        const file = req.file;
         try {
             let avatarImage;
-            if (imagePath) {
-                avatarImage = await (0, uploadCloudinary_1.uploadImage)(imagePath);
-                console.log("Avatar image URL after uploadImage:", avatarImage);
+            if (file) {
+                const buffer = file.buffer;
+                const publicId = file.originalname.replace(/\.[^/.]+$/, "");
+                try {
+                    const result = await (0, uploadCloudinary_1.uploadImage)(buffer, publicId);
+                    avatarImage = result.imageUrl;
+                }
+                catch (error) {
+                    console.error('Error uploading image:', error);
+                    avatarImage = "";
+                }
             }
             // Prepara los datos para la actualización
             const authorData = {

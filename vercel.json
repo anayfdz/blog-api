@@ -12,6 +12,11 @@
     }
     }
     ],
+    "functions": {
+      "app/api/**/*": {
+      "maxDuration": 5
+    }
+    },
     "routes": [
       { "src": "/(.*)", "dest": "/index.ts" }
     ],

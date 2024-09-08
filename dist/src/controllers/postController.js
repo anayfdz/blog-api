@@ -9,7 +9,7 @@ class PostController {
     static async createPost(req, res) {
         try {
             const { title, content, categories, tags } = req.body;
-            const imagePath = req.file?.path;
+            const file = req.file;
             if (!title || !content) {
                 res.status(400).json({ message: "Title and content are required" });
                 return;
@@ -27,8 +27,19 @@ class PostController {
             const authorId = new mongodb_1.ObjectId(authorData._id);
             // Subir la imagen si existe
             let imageUrl;
-            if (imagePath) {
-                imageUrl = await (0, uploadCloudinary_1.uploadImage)(imagePath);
+            if (file) {
+                const buffer = file.buffer;
+                const publicId = file.originalname.replace(/\.[^/.]+$/, "");
+                try {
+                    const result = await (0, uploadCloudinary_1.uploadImage)(buffer, publicId);
+                    console.log("Resultado de imagen:", result);
+                    imageUrl = result.imageUrl;
+                    console.log("Resultado de imagen 2:", imageUrl);
+                }
+                catch (error) {
+                    console.error('Error uploading image:', error);
+                    //imageUrl = "";
+                }
             }
             const postData = {
                 title,
@@ -39,11 +50,11 @@ class PostController {
                 createdAt: new Date(),
                 updatedAt: new Date(),
                 comments: [],
-                imagePath,
-                imageUrl: imageUrl || "",
+                imagePath: file ? file.originalname : "",
+                imageUrl,
             };
-            console.log("postData before saving:", postData);
-            await Post_1.PostModel.createPost(postData, authorData, imagePath);
+            console.log("postData before saving controller:", postData);
+            await Post_1.PostModel.createPost(postData, authorData);
             res.status(201).json({ message: "Post created successfully" });
         }
         catch (error) {
@@ -84,7 +95,23 @@ class PostController {
         try {
             const { id } = req.params;
             const postData = req.body;
-            await Post_1.PostModel.updatePost(id, postData);
+            const file = req.file;
+            let imageUrl;
+            if (file) {
+                console.log("File buffer:", file.buffer);
+                const buffer = file.buffer;
+                const publicId = file.originalname.replace(/\.[^/.]+$/, "");
+                try {
+                    const result = await (0, uploadCloudinary_1.uploadImage)(buffer, publicId);
+                    console.log("uploadImage result:", result);
+                    imageUrl = result.imageUrl;
+                }
+                catch (error) {
+                    console.error('Error uploading image:', error);
+                    imageUrl = "";
+                }
+            }
+            await Post_1.PostModel.updatePost(id, { ...postData, imageUrl });
             res
                 .status(200)
                 .json({ message: "Se ha actualizado el post correctamente" });
