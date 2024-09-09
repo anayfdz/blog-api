@@ -7,7 +7,10 @@ if (!uri) {
 }
 let cacheDb: Db | null = null;
 
-const client = new MongoClient(uri);
+const client = new MongoClient(uri,{
+    connectTimeoutMS: 10000,
+    serverSelectionTimeoutMS: 5000,
+});
 
 export async function connectDB(): Promise<Db> {
     if (cacheDb) {
@@ -21,6 +24,7 @@ export async function connectDB(): Promise<Db> {
         return db;
     } catch (error) {
         console.error('Failed to connect to MongoDB', error);
-        process.exit();
+        throw new Error('Could not connect to MongoDB');
+        //process.exit();
     }
 }
