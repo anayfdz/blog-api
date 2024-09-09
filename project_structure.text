@@ -1,8 +1,13 @@
 - .DS_Store
 - .env
 - .env-example
+- .env.local
 - .gitignore
+- .vercel
+  - project.json
+  - README.txt
 - dist
+  - index.js
   - src
     - config
       - cloudinaryConfig.js
@@ -47,6 +52,7 @@
   - tsconfig.tsbuildinfo
 - index.ts
 - package.json
+- render.yaml
 - src
   - config
     - cloudinaryConfig.ts
