@@ -62,7 +62,6 @@ export class PostModel {
         updatedAt: new Date(),
         imagePath: file ? file.originalname : "",
       };
-      console.log("postData before saving adentro:", postWithObjectId);
       await PostModel.collection.insertOne(postWithObjectId);
     } catch (err) {
       console.error("Error creating post", err);
