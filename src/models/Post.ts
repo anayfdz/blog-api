@@ -46,7 +46,7 @@ export class PostModel {
   static async createPost(
     postData: Omit<Post, "_id" | "createdAt" | "updatedAt">,
     author: Author,
-    //file?: Express.Multer.File
+    file?: Express.Multer.File
   ): Promise<void> {
     try {
       if (!PostModel.collection) {
@@ -55,28 +55,14 @@ export class PostModel {
       if (!author) {
         throw new Error("Author ID is required");
       }
-      //let imageUrl: string | undefined = "";
-      // if (file) {
-      //   const publicId = file.originalname.replace(/\.[^/.]+$/, "");
-      //   const buffer = file.buffer;
-      //   try {
-      //     const result = await uploadImage(buffer, publicId);
-      //     imageUrl = result.imageUrl;
-      //   } catch (error) {
-      //     console.error("Error uploading image:", error);
-      //     // imageUrl = "";
-      //   }
-      // }
-      //console.log("Model - imageUrl after uploadImage:", imageUrl);
       const postWithObjectId = {
         ...postData,
         author: new ObjectId(author._id),
         createdAt: new Date(),
         updatedAt: new Date(),
-        //imagePath: file ? file.originalname : "",
-        //imageUrl: imageUrl,
+        imagePath: file ? file.originalname : "",
       };
-      //console.log("postData before saving adentro:", postWithObjectId);
+      console.log("postData before saving adentro:", postWithObjectId);
       await PostModel.collection.insertOne(postWithObjectId);
     } catch (err) {
       console.error("Error creating post", err);

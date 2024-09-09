@@ -27,21 +27,21 @@ export class PostController {
             return;
         }
         const authorId = new ObjectId(authorData._id);
-        // Subir la imagen si existe
+        
         let imageUrl: string | undefined;
-        // if (file) {
-        //   const buffer = file.buffer;
-        //   const publicId = file.originalname.replace(/\.[^/.]+$/, "");
-        //   try {
-        //     const result = await uploadImage(buffer, publicId);
-        //     console.log("Resultado de imagen:", result);
-        //     imageUrl = result.imageUrl;
-        //     console.log("Resultado de imagen 2:", imageUrl);
-        // } catch (error) {
-        //     console.error('Error uploading image:', error);
-        //     //imageUrl = "";
-        // }
-        // }
+        if (file) {
+          const buffer = file.buffer;
+          const publicId = file.originalname.replace(/\.[^/.]+$/, "");
+          try {
+            const result = await uploadImage(buffer, publicId);
+            console.log("Resultado de imagen:", result);
+            imageUrl = result.imageUrl;
+            console.log("Resultado de imagen 2:", imageUrl);
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            //imageUrl = "";
+        }
+        }
 
       const postData = {
         title,
@@ -57,7 +57,7 @@ export class PostController {
       };
       console.log("postData before saving controller:", postData);
 
-      await PostModel.createPost(postData, authorData);
+      await PostModel.createPost(postData, authorData, file);
       res.status(201).json({ message: "Post created successfully" });
     } catch (error) {
       console.error("Error creating post", error);
