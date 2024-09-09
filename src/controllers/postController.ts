@@ -102,7 +102,6 @@ export class PostController {
         const publicId = file.originalname.replace(/\.[^/.]+$/, "");
         try {
           const result = await uploadImage(buffer, publicId);
-          console.log("uploadImage result:", result);
           imageUrl = result.imageUrl;
       } catch (error) {
           console.error('Error uploading image:', error);
