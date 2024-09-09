@@ -13,7 +13,7 @@ interface User {
     createdAt: Date;
     updatedAt: Date;
 }
-enum UserType {
+export enum UserType {
     ADMIN = 'ADMIN',
     AUTHOR = 'AUTHOR',
     USER = 'USER'
@@ -70,4 +70,10 @@ export class UserModel {
         }
         return [];
     }
+    static async findUserByEmail(email: string): Promise<User | null> {
+        if (!UserModel.collection) {
+          throw new Error('User collection not initialized');
+        }
+        return UserModel.collection.findOne({ email });
+      }
 }

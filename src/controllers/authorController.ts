@@ -1,10 +1,34 @@
 import { Request, Response } from 'express';
 import { AuthorModel } from '../models/Author';
+import { AuthenticatedRequest } from '../types/types';
+import { uploadImage } from "../config/uploadCloudinary";
 
 export class AuthorController {
     static async createAuthor(req: Request, res: Response): Promise<void> {
         try {
-            const authorData = req.body;
+            const {name, email,description} = req.body;
+            const file = req.file
+            const imagePath = req.file?.path;
+            let avatarImage: string | undefined;
+            let imageUrl: string | undefined;
+            if (file) {
+                const buffer = file.buffer;
+                const publicId = file.originalname.replace(/\.[^/.]+$/, "");
+                try {
+                    const result = await uploadImage(buffer, publicId);
+                    avatarImage = result.imageUrl;
+                } catch (error) {
+                    console.error('Error uploading image:', error);
+                    avatarImage = "";
+                }              }
+            const authorData = {
+                email,
+                name,
+                avatarImage: avatarImage ||"",
+                description,
+                createdAt: new Date(),
+                updatedAt: new Date()
+            }
             await AuthorModel.createAuthor(authorData);
             res.status(201).json({ message: 'Author succesfully' });
         } catch (error) {
@@ -14,8 +38,31 @@ export class AuthorController {
     }
     static async updateAuthor(req: Request, res: Response): Promise<void> {
         const { id } = req.params;
-        const authorData = req.body;
+        const { name, email, description } = req.body;
+        const file = req.file;
         try {
+            let avatarImage: string | undefined;
+            if (file) {
+                const buffer = file.buffer;
+                const publicId = file.originalname.replace(/\.[^/.]+$/, "");
+                try {
+                    const result = await uploadImage(buffer, publicId);
+                    avatarImage = result.imageUrl;
+                } catch (error) {
+                    console.error('Error uploading image:', error);
+                    avatarImage = "";
+                }
+              }
+            // Prepara los datos para la actualización
+            const authorData: any = {
+                name,
+                email,
+                description,
+                updatedAt: new Date(),
+            };
+            if (avatarImage) {
+                authorData.avatarImage = avatarImage;
+            }
             await AuthorModel.updateAuthor(id, authorData);
             res.status(200).json({ message: 'Autor actualizado con exito' })
         } catch (error) {

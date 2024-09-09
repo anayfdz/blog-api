@@ -2,10 +2,10 @@ import express from 'express';
 import { CategoryController } from '../controllers/categoryController';
 
 const categoryRoutes = express.Router();
-categoryRoutes.post('/categories',CategoryController.createCategory);
-categoryRoutes.put('/categories/:id',CategoryController.updateCategory);
-categoryRoutes.delete('/categories/:id', CategoryController.deleteCategory);
-categoryRoutes.get('/categories/:id', CategoryController.getCategoryById);
-categoryRoutes.get('/categories', CategoryController.getAllCategories)
+categoryRoutes.post('/',CategoryController.createCategory);
+categoryRoutes.put('/:id',CategoryController.updateCategory);
+categoryRoutes.delete('/:id', CategoryController.deleteCategory);
+categoryRoutes.get('/:id', CategoryController.getCategoryById);
+categoryRoutes.get('/', CategoryController.getAllCategories)
 
 export {categoryRoutes};
