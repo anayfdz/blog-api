@@ -1,9 +1,0 @@
-services:
-  - type: web
-    name: blog-api
-    env: node
-    buildCommand: yarn build
-    startCommand: yarn start
-    plan: free
-    instances: 1
-    branches: [main]
