@@ -18,7 +18,8 @@ import { initializedDatabase } from './src/config/dbInitializer';
 
 
 const app = express();
-const port = config.PORT;
+const port = parseInt(config.PORT);
+const host = config.HOST;
 
 // Middleware
 applyMiddleware(app);
@@ -35,7 +36,7 @@ app.use('/api/comments', commentRoutes);
 app.use('/api/likes', likeRoutes);
 app.use('/api/tags', tagRoutes);
 
-app.listen(port, () => {
+app.listen(port, host, () => {
     console.log(`Server is running on port ${port}`)
 });
 })
